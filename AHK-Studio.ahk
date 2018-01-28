@@ -5116,7 +5116,7 @@ FixLines(line,total,base:=""){
 					SpecialIndent--
 			}
 		}if(InStr(Text,Chr(59))){
-			if(Pos:=Text~="\s+\x3B")
+			if(Pos:=Text~="(\s+\x3B|^\x3B)")
 				Text:=Trim(SubStr(Text,1,Pos-1))
 		}first:=SubStr(Text,1,1),last:=SubStr(Text,0,1),ss:=(Text~="i)^\s*(&&|\bOR\b|\bAND\b|\.|\,|\|\||:|\?)\s*"),indentcheck:=(RegExMatch(Text,"iA)}*\s*[^#]?\b(" IndentRegex ")\b",string)&&IndentRegex)
 		if(first="<")

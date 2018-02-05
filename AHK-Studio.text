@@ -9,3 +9,5 @@ Fixed: Reported by Joe Glines
 Fixed: Reported by tempuserr #156
 - Version Number not properly updated
 - Removed some old XML files and README.md file
+Added: Suggested by TrollosaurusHax (Discord)
+- Duplicate Text Indicator (Settings): Change Style, Color, Transparency, and Border Transparency

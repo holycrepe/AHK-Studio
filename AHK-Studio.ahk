@@ -2628,7 +2628,7 @@ Color(con:="",Language:="",FromFunc:=""){
 		Loop,7
 			con.2041(24+A_Index,ea.color!=""?ea.color:"0"),con.2042(24+A_Index,ea.background!=""?ea.Background:"0xAAAAAA")
 	}con.2680(3,6),con.2242(4,1),con.2240(4,5),con.2110(1)
-	for a,b in [[2051,151,Settings.Get("//debug/continuecolor",0xFF8080)],[2051,35,0xff00ff],[2080,2,8],[2080,3,14],[2080,6,14],[2080,7,6],[2080,8,1],[2082,2,0xff00ff],[2082,6,0xC08080],[2082,8,0xff00ff],[2212,5],[2371,0],[2373,Settings.Get("//gui/@zoom",0)],[2458,2],[2516,1],[2636,1],[2680,3,6]]
+	for a,b in [[2051,151,Settings.Get("//debug/continuecolor",0xFF8080)],[2523,6,Settings.Get("//DuplicateIndicator/@trans",50)],[2558,6,Settings.Get("//DuplicateIndicator/@bordertrans",50)],[2051,35,0xff00ff],[2080,2,8],[2080,3,14],[2080,6,Settings.Get("//DuplicateIndicator/@style",14)],[2080,7,6],[2080,8,1],[2082,2,0xff00ff],[2082,6,Settings.Get("//DuplicateIndicator/@color",0xC08080)],[2082,8,0xff00ff],[2212,5],[2371,0],[2373,Settings.Get("//gui/@zoom",0)],[2458,2],[2516,1],[2636,1],[2680,3,6]]
 		con[b.1](b.2,b.3)
 	if(!v.Options.Match_Any_Word)
 		con.2198(0x2)
@@ -3777,6 +3777,7 @@ DisplayStats(call){
 }
 Dlg_Color(Node,Default:="",hwnd:="",Attribute:="color"){
 	static
+	Active:=DllCall("GetActiveWindow")
 	Node:=Node.xml?Node:Settings.Add(Trim(Node,"/")),Default:=Default?Default:Settings.SSN("//default"),Color:=(((Color:=SSN(Node,"@" Attribute).text)!="")?Color:SSN(Default,"@" Attribute).text)
 	if(Settings.SSN("//colorinput").text){
 		Color:=InputBox(sc,"Color Code","Input Your Color Code In RGB (0xFFFFFF or FFFFFF)",RGB(Color))
@@ -3796,6 +3797,7 @@ Dlg_Color(Node,Default:="",hwnd:="",Attribute:="color"){
 	Node.SetAttribute(Attribute,(Color:=NumGet(ChooseColor,3*4,"UInt")))
 	if(!Node.xml)
 		m("Bottom of Dlg_Color()",Node.xml,Color)
+	WinActivate,ahk_id%Active%
 	return Color
 }
 DLG_FileSave(HWND:=0,DefaultFilter=0,DialogTitle="Select file to open",DefaultFile:="",Flags:=0x00000002,ForceFile:=0){
@@ -6097,6 +6099,7 @@ Index_Lib_Files(){
 }}}
 InputBox(Parent,Title,Prompt,Default=""){
 	sc:=CSC(),Width:=sc.2276(33,"a"),Max:=[]
+	Active:=DllCall("GetActiveWindow")
 	OnMessage(6,"")
 	WinGetPos,x,y,,,% "ahk_id" (Parent?Parent:sc.sc+0)
 	for a,b in StrSplit(Prompt,"`n")
@@ -6106,15 +6109,15 @@ InputBox(Parent,Title,Prompt,Default=""){
 	KeyWait,Escape,U
 	if(ErrorLevel){
 		sc.Enable(1)
-		WinActivate,% HWND([1])
+		WinActivate,ahk_id%Active%
 		Exit
 	}
-	if(!WinActive(HWND([1]))){
+	if(!WinActive("ahk_id" Active)){
 		;~ WinActivate,% HWND([1])
 		flan:=DllCall("User32\SetActiveWindow","UPtr",HWND(1))
 		;~ m(Flan,HWND(1))
 	}
-	WinWaitActive,% HWND([1]),,1
+	WinWaitActive,ahk_id%Active%,,1
 	OnMessage(6,"Activate")
 	return var
 }
@@ -9913,7 +9916,7 @@ Class SettingsClass{
 		for a,b in this.WindowList
 			xx.Add("item",{name:b},,1)
 		parent:=xx.Under((theme:=xx.SSN("//*[@name='Theme']")),"top",{name:"Color"}),this.Default()
-		for a,b in [{"Brace Match":"Indicator Reset"},{"Caret":"Caret,Caret Line Background,Debug Caret Color,Multiple Indicator Color,Width"},{"Code Explorer":"Background,Default Background,Text Style,Default Style"},{Default:"Background Color,Font Style,Reset To Default"},{"":"Indent Guide"},{"Main Selection":"Foreground,Remove Forground"},{"Multiple Selection":"Foreground,Remove Forground"},{"Project Explorer":"Background,Default Background,Text Style,Default Style"},{"Quick Find":"Bottom Background,Bottom Forground,Quick Find Clear,Quick Find Edit Background,Top Background,Top Forground"},{"":"StatusBar Text Style"}]{
+		for a,b in [{"Brace Match":"Indicator Reset"},{"Duplicate Indicator":"Indicator Style,Indicator Color,Indicator Transparency,Indicator Border Transparency"},{"Caret":"Caret,Caret Line Background,Debug Caret Color,Multiple Indicator Color,Width"},{"Code Explorer":"Background,Default Background,Text Style,Default Style"},{Default:"Background Color,Font Style,Reset To Default"},{"":"Indent Guide"},{"Main Selection":"Foreground,Remove Forground"},{"Multiple Selection":"Foreground,Remove Forground"},{"Project Explorer":"Background,Default Background,Text Style,Default Style"},{"Quick Find":"Bottom Background,Bottom Forground,Quick Find Clear,Quick Find Edit Background,Top Background,Top Forground"},{"":"StatusBar Text Style"}]{
 			for c,d in b{
 				node:=c?xx.Under(parent,"parent",{name:c}):parent
 				for e,f in StrSplit(d,",")
@@ -9972,11 +9975,13 @@ Class SettingsClass{
 			}SettingsClass.Types[hwnd]:=i.1,SettingsClass.Types[i.4]:=i.1
 	}}AddText(text*){
 		static var
+		Obj:=[]
 		for a,b in text{
-			VarSetCapacity(var,(len:=StrPut(b.1,"UTF-8"))),StrPut(b.1,&var,len,"UTF-8"),this.2003((start:=this.2006()),&var),this.ThemeTextText.=b.1,this.2032(start),this.2033(len,b.2)
+			VarSetCapacity(var,(len:=StrPut(b.1,"UTF-8"))),StrPut(b.1,&var,len,"UTF-8"),this.2003((start:=this.2006()),&var),this.ThemeTextText.=b.1,this.2032(start),this.2033(len,b.2),Obj.Push({start:Start,len:Len-1})
 			if(b.2=255)
 				SettingsClass.OpenBrace:=this.2006()-2
-	}}Close(){
+		}return Obj
+	}Close(){
 		SettingsClass.keep.Escape()
 	}Color(){
 		static list:={Font:2056,Size:2055,Color:2051,Background:2052,Bold:2053,Italic:2054,Underline:2059}
@@ -9986,7 +9991,10 @@ Class SettingsClass{
 			this.2051(96,0xff00ff)
 		if(!Settings.SSN("//theme/font[@style='100']"))
 			this.2051(100,0x0000ff)
-		for a,b in [[2080,7,6],[2242,1,20],[2082,8,0xff00ff],[2080,8,1],[2080,6,14],[2080,2,8],[2082,2,0xff00ff],[2082,6,0xC08080],[2080,3,14],[2680,3,6],[2516,1]]
+		/*
+			2523() 2558() ;here
+		*/
+		for a,b in [[2080,7,6],[2523,6,Settings.Get("//DuplicateIndicator/@trans",50)],[2558,6,Settings.Get("//DuplicateIndicator/@bordertrans",50)],[2242,1,20],[2080,6,Settings.Get("//DuplicateIndicator/@style",14)],[2082,6,Settings.Get("//DuplicateIndicator/@color",0xC08080)],[2082,8,0xff00ff],[2080,8,1],[2080,6,14],[2080,2,8],[2082,2,0xff00ff],[2082,6,0xC08080],[2080,3,14],[2680,3,6],[2516,1]]
 			this[b.1](b.2,b.3)
 		text:=this.ThemeTextText,pos:=InStr(text,"(")
 		for a,b in {70:2068,71:2601}
@@ -10371,6 +10379,29 @@ Class SettingsClass{
 				Node.ParentNode.RemoveChild(Node)
 		}else if(item="StatusBar Text Style"){
 			Node:=(Node:=Settings.SSN("//theme/custom[@control='msctls_statusbar321']"))?node:Settings.Add("theme/custom",{control:"msctls_statusbar321"},,1),ea:=XML.EA(node),Node.SetAttribute("gui",1),Dlg_Font(Node,,SettingsClass.hwnd)
+		}else if(parent="Duplicate Indicator"){
+			if(Item="Indicator Style"){
+				/*
+					Dlg_Color(Settings.SSN("//DuplicateIndicator"),,SettingsClass.hwnd,"style")
+				*/
+				Style:=InputBox(SettingsClass.hwnd,"Duplicate Indicator Style","Enter the number of the style you want this indicator to be 0-16 (Default 14)",Settings.Get("//DuplicateIndicator/@style",14))
+				if(Style<=16&&Style>=0)
+					Settings.Add("DuplicateIndicator").SetAttribute("style",Style)
+			}else if(Item="Indicator Color"){
+				Dlg_Color(Settings.Add("DuplicateIndicator"),,SettingsClass.hwnd,"color") ;here
+			}else if(Item="Indicator Transparency"){
+				;add in the Transparency for the border and background into both here and the Color() 2523() 2558()
+				Style:=InputBox(SettingsClass.hwnd,"Duplicate Transparency","Enter the Transparency value for the Background 0-255 (0=Opaque)",Settings.Get("//DuplicateIndicator/@trans",50)) ;here2
+				if(Style<=255&&Style>=0)
+					Settings.Add("DuplicateIndicator").SetAttribute("trans",Style)
+			}else if(Item="Indicator Border Transparency"){
+				Style:=InputBox(SettingsClass.hwnd,"Duplicate Indicator Border Transparency","Enter the Transparency value for the Border 0-255 (0=Opaque)",Settings.Get("//DuplicateIndicator/@bordertrans",50))
+				if(Style<=255&&Style>=0)
+					Settings.Add("DuplicateIndicator").SetAttribute("bordertrans",Style)
+			}
+			/*
+				Indicator Style,Indicator Color
+			*/
 		}else if(parent="Brace Match"){
 			if(item="Indicator Reset"){
 				node:=Settings.SSN("//theme/bracematch"),node.ParentNode.RemoveChild(node)
@@ -10451,6 +10482,7 @@ Class SettingsClass{
 		if(!ControlFile:=Keywords.GetXML(Current(3).Lang))
 			ControlFile:=new XML("","lib\Languages\ahk.xml")
 		all:=ControlFile.SN("//Styles/*[@ex]")
+		Obj:=this.AddText(["Duplicate Indicator <----In Treeview under Duplicate Indicator`n`n",0])
 		while(aa:=all.item[A_Index-1],ea:=XML.EA(aa)){
 			if(ea.Fold)
 				Start:=this.2166(this.2006())
@@ -10473,6 +10505,7 @@ Class SettingsClass{
 					this.2043(A_Index+Start-1,(A_Index=1?31:Start+A_Index=End?28:29))
 			}
 		}this.AddText(["`n`nLeft Click to edit the fonts color`nControl+Click to edit the font style, size, italic...etc`nAlt+Click to change the Background color`nThis works for the Line Numbers as well",0]),this.2171(1)
+		this.2080(6,14),this.2082(6,0xff00ff),this.2500(6),this.2504(Obj.1.Start,Obj.1.Len)
 		GuiControl,Settings:+Redraw,Scintilla1
 	}TVName(node){
 		return RegExReplace(RegExReplace((ea:=xml.EA(node)).clean,"_"," "),"&") (ea.hotkey?"  :  " Convert_Hotkey(ea.hotkey):"") (ea.hide?"  :  Hidden":"")

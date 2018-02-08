@@ -4514,10 +4514,13 @@ Extract(Main){
 		Goto,ExtractNext
 	}
 	if(v.Options.Include_All_Lib_Files||1){
-		Top:=cexml.Find("//main/@file",MainFile)
+		Top:=cexml.Find("//main/@file",MainFile),AllFiles:=[]
+		All:=SN(Top,"descendant::file")
+		while(aa:=All.Item[A_Index-1],ea:=XML.EA(aa))
+			AllFiles[ea.File]:=1
 		Loop,Files,%MainDir%\Lib\*.ahk
 		{
-			if(!cexml.Find(Top,"descendant::file/@file",A_LoopFileLongPath)){
+			if(!AllFiles[A_LoopFileLongPath]){
 				SplitPath,A_LoopFileLongPath,FileName,dir,Ext,nne
 				Obj:=[],Language:=LanguageFromFileExt(Ext),Obj.ext:=Ext,Obj.lang:=Language,new:=cexml.Under(Top,"file",Obj),Relative:=RelativePath(MainFile,A_LoopFileLongPath)
 				for a,b in {file:A_LoopFileLongPath,type:"File",id:GetID(),filename:filename,dir:dir,nne:nne,github:(MainDir=dir?filename:!InStr(Relative,"..")?Relative:"lib\" filename),scan:1,lower:Format("{:L}",filename)}

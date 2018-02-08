@@ -4627,7 +4627,7 @@ FileCheck(file:=""){
 			m("Requires AutoHotkey 1.1 to run")
 			ExitApp
 		}
-		Run,"%correct%" "%A_ScriptName%" "%file%",%A_ScriptDir%
+		Run,"%correct%" "%A_ScriptFullPath%" "%file%",%A_ScriptDir%
 		ExitApp
 		return
 	}if(file){

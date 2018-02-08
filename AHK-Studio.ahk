@@ -111,7 +111,7 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 )
-	Setup(11),Hotkeys(11,{"Esc":"11Close"}), Version:="1.005.06"
+	Setup(11),Hotkeys(11,{"Esc":"11Close"}), Version:="1.005.07"
 	Gui,Margin,0,0
 	sc:=new s(11,{pos:"x0 y0 w700 h500"}),CSC({hwnd:sc})
 	Gui,Add,Button,gdonate,Donate
@@ -600,7 +600,7 @@ Check_For_Update(startup:=""){
 		if(Auto.Reset>A_Now)
 			return
 	}
-	Version:="1.005.06"
+	Version:="1.005.07"
 	NewWin:=new GUIKeep("CFU"),NewWin.Add("Edit,w400 h400 ReadOnly,No New Version,wh"
 								  ,"Radio,gSwitchBranch Checked vmaster,Master Branch,y"
 								  ,"Radio,x+M gSwitchBranch vBeta,Beta Branch,y"
@@ -1859,7 +1859,7 @@ Class PluginClass{
 	}m(Info*){
 		m(Info*)
 	}MoveStudio(){
-		Version:="1.005.06"
+		Version:="1.005.07"
 		SplitPath,A_ScriptFullPath,,,,name
 		FileMove,%A_ScriptFullPath%,%name%-%version%.ahk,1
 	}Open(Info){
@@ -1904,7 +1904,7 @@ Class PluginClass{
 	}Update(filename,text){
 		Update({file:filename,text:text})
 	}Version(){
-		Version:="1.005.06"
+		Version:="1.005.07"
 		return version
 	}
 }
@@ -4513,17 +4513,13 @@ Extract(Main){
 			Continue
 		Goto,ExtractNext
 	}
-	/*
-		may be causing duplicates
-	*/
 	if(v.Options.Include_All_Lib_Files||1){
-		Top:=Settings.Find("//main/@file",MainFile)
+		Top:=cexml.Find("//main/@file",MainFile)
 		Loop,Files,%MainDir%\Lib\*.ahk
 		{
 			if(!cexml.Find(Top,"descendant::file/@file",A_LoopFileLongPath)){
 				SplitPath,A_LoopFileLongPath,FileName,dir,Ext,nne
-				Language:=LanguageFromFileExt(Ext),obj.ext:=Ext,obj.lang:=Language,new:=cexml.Under(cexml.Find(node,"descendant-or-self::file/@file",obj.inside),"file",obj)
-				Relative:=RelativePath(MainFile,A_LoopFileLongPath)
+				Obj:=[],Language:=LanguageFromFileExt(Ext),Obj.ext:=Ext,Obj.lang:=Language,new:=cexml.Under(Top,"file",Obj),Relative:=RelativePath(MainFile,A_LoopFileLongPath)
 				for a,b in {file:A_LoopFileLongPath,type:"File",id:GetID(),filename:filename,dir:dir,nne:nne,github:(MainDir=dir?filename:!InStr(Relative,"..")?Relative:"lib\" filename),scan:1,lower:Format("{:L}",filename)}
 					new.SetAttribute(a,b)
 			}
@@ -5965,7 +5961,7 @@ Hotkeys(win:=1,keys:=""){
 	else if(v.AllOptions[clean])
 		Options(clean)
 	else if(plugin:=menus.EA("//*[@clean='" clean "']")){
-		if(!FileExist(plugin.plugin))
+		if(!FileExist(A_ScriptDir "\" plugin.plugin))
 			MissingPlugin(plugin.plugin,clean)
 		Try
 			Run,% Chr(34) A_ScriptDir "\" plugin.plugin " " Chr(34) (plugin.option?Chr(34) plugin.option Chr(34):"")
